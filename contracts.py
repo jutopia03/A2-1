@@ -52,6 +52,12 @@ import json
 import os
 import re
 
+from dotenv import load_dotenv
+
+# 이 파일을 import하는 모든 모듈(naming/content/visual/main)이 .env를 읽게 한다.
+# 여기에 두지 않으면 `python content.py`처럼 단독 실행할 때 키를 못 찾는다.
+load_dotenv()
+
 # ── 브리프 필수 필드 ────────────────────────────────────────
 REQUIRED_FIELDS = ["industry", "target", "keywords"]
 
@@ -66,8 +72,19 @@ def load_brief(path):
     if not os.path.exists(path):
         raise FileNotFoundError(f"브리프 파일을 찾을 수 없습니다: {path}")
 
-    with open(path, "r", encoding="utf-8") as f:
-        brief = json.load(f)
+    if os.path.isdir(path):
+        raise ValueError(f"'{path}'은(는) 폴더입니다. 파일 경로를 입력하세요. (예: brief.json)")
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            brief = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"브리프 파일이 올바른 JSON 형식이 아닙니다: {e}")
+    except OSError as e:
+        raise ValueError(f"브리프 파일을 읽을 수 없습니다: {e}")
+
+    if not isinstance(brief, dict):
+        raise ValueError("브리프는 JSON 객체({...}) 형태여야 합니다.")
 
     missing = [k for k in REQUIRED_FIELDS if not brief.get(k)]
     if missing:
@@ -132,7 +149,10 @@ def call_llm(prompt, temperature=0.9):
     """
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        print("  [오류] GEMINI_API_KEY가 없습니다. .env 파일을 확인하세요.")
+        print("  [오류] GEMINI_API_KEY가 없습니다.")
+        print(f"         현재 작업 폴더: {os.getcwd()}")
+        print(f"         이 폴더에 .env 있음? {os.path.exists('.env')}")
+        print("         → .env가 False면 파일이 없거나 .env.txt로 저장된 것입니다.")
         return None
 
     try:
