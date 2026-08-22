@@ -19,7 +19,7 @@ from contracts import ensure_dir
 # ── 개발용 안전장치 ─────────────────────────────────────
 # 로고는 호출할 때마다 과금된다. 프롬프트를 다듬는 동안에는
 # LOGO_COUNT를 1로 두고, 최종 확인 때만 2~3으로 올린다. (미션 요구사항 2~3장)
-LOGO_COUNT = 1          # 생성할 시안 수 (최종 제출 시 2 이상)
+LOGO_COUNT = 3          # 생성할 시안 수 (최종 제출 시 2 이상)
 LOGO_SIZE = "1024x1024"
 
 def render_palette(palette, out_dir):
